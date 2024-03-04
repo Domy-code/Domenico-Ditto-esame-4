@@ -22,7 +22,7 @@ class RecapitoResource extends JsonResource
     protected function getCampi()
     {
         // Ottengo l'istanza della categoria
-        $tipoRecapito = TipoRecapito::find($this->idTipoRecapito);
+        $tipoRecapito = TipoRecapito::findOrFail($this->idTipoRecapito);
         $nomeTipoRecapito = $tipoRecapito->nome;
         return [
             'idUtente' => $this->idUtente,

@@ -8,6 +8,7 @@ use App\Http\Requests\IndirizzoUpdateRequest;
 use App\Http\Resources\IndirizzoCollection;
 use App\Http\Resources\IndirizzoResource;
 use App\Models\Indirizzo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,7 +24,7 @@ class IndirizzoController extends Controller
             $indirizzo = Indirizzo::all();
             return new IndirizzoCollection($indirizzo);
         } else {
-            abort(403, 'Operazione non permessa');
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -48,7 +49,7 @@ class IndirizzoController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -58,10 +59,14 @@ class IndirizzoController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $indirizzo = Indirizzo::find($id);
-            return new IndirizzoResource($indirizzo);
+            try {
+                $indirizzo = Indirizzo::findOrFail($id);
+                return new IndirizzoResource($indirizzo);
+            } catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -81,7 +86,7 @@ class IndirizzoController extends Controller
             //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
             if ($idUtente == $id || $idRuolo == 1) {
 
-                $indirizzo = Indirizzo::find($id);
+                $indirizzo = Indirizzo::findOrFail($id);
 
                 //verifico i dati
                 $dati = $request->validated();
@@ -98,13 +103,13 @@ class IndirizzoController extends Controller
                     return $indirizzo;
                 } else {
                     // L'operazione di salvataggio ha fallito
-                    return response()->json(['error' => 'Operazione non effettuata'], 400);
+                    return response()->json(['error' => 'ERR SA_0001'], 404);
                 }
             } else {
-                return response()->json(['error' => 'Non autorizzato'], 401);
+                abort(403, 'ERR NA_001');
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -114,12 +119,12 @@ class IndirizzoController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $indirizzo = Indirizzo::find($id);
+            $indirizzo = Indirizzo::findOrFail($id);
             $indirizzo->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Resources\EpisodioResource;
 use App\Models\SerieTv;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SerieTvStagioneEpisodiController extends Controller
 {
@@ -16,23 +17,31 @@ class SerieTvStagioneEpisodiController extends Controller
      */
     public function index($id)
     {
-        // Trovo la serie TV desiderata utilizzando l'ID
-        $serieTv = SerieTv::findOrFail($id);
+        try {
+            if (Gate::allows('leggere')) {
+                // Trovo la serie TV desiderata utilizzando l'ID
+                $serieTv = SerieTv::findOrFail($id);
 
-        // Ottengo tutte le stagioni associate alla serie TV
-        $stagioni = $serieTv->stagioni;
+                // Ottengo tutte le stagioni associate alla serie TV
+                $stagioni = $serieTv->stagioni;
 
-        // Per ogni stagione, ottengo tutti gli episodi associati
-        $episodiPerStagione = [];
-        foreach ($stagioni as $stagione) {
-            $episodiPerStagione[$stagione->idStagione] = $stagione->episodi;
+                // Per ogni stagione, ottengo tutti gli episodi associati
+                $episodiPerStagione = [];
+                foreach ($stagioni as $stagione) {
+                    $episodiPerStagione[$stagione->idStagione] = $stagione->episodi;
+                }
+
+                return response()->json([
+                    'serieTv' => $serieTv,
+                    'stagioni' => $stagioni,
+                    'episodiPerStagione' => $episodiPerStagione
+                ]);
+            } else {
+                abort(403, 'ERR NA_001');
+            }
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'ERR NF_0001'], 404);
         }
-
-        return response()->json([
-            'serieTv' => $serieTv,
-            'stagioni' => $stagioni,
-            'episodiPerStagione' => $episodiPerStagione
-        ]);
     }
 
     /**
@@ -48,21 +57,24 @@ class SerieTvStagioneEpisodiController extends Controller
      */
     public function show(string $idSerieTv, $idStagione)
     {
-        try{
-  // Trovo la serie TV 
-  $serieTv = SerieTV::findOrFail($idSerieTv);
+        if (Gate::allows('leggere')) {
+            try {
+                // Trovo la serie TV 
+                $serieTv = SerieTV::findOrFail($idSerieTv);
 
-  // Trovo la stagione desiderata all'interno di quella serie TV
-  $stagione = $serieTv->stagioni()->where('stagioni.idStagione', $idStagione)->firstOrFail();
+                // Trovo la stagione desiderata all'interno di quella serie TV
+                $stagione = $serieTv->stagioni()->where('stagioni.idStagione', $idStagione)->firstOrFail();
 
-  // Ottieni gli episodi relativi a quella stagione
-  $episodi = $stagione->episodi;
+                // Ottieni gli episodi relativi a quella stagione
+                $episodi = $stagione->episodi;
 
-  return new EpisodioCollection($episodi->makeHidden('pivot'));
-        }catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'ERR NF_0001'], 404);
+                return new EpisodioCollection($episodi->makeHidden('pivot'));
+            } catch (ModelNotFoundException $e) {
+                return response()->json(['error' => 'ERR NF_0001'], 404);
+            }
+        } else {
+            abort(403, 'ERR NA_001');
         }
-      
     }
 
     /**

@@ -25,13 +25,13 @@ class UtenteCollection extends ResourceCollection
 
     protected function getCampi($item)
     {
-        $ruolo = Ruolo::find($item['idRuolo']);
+        $ruolo = Ruolo::findOrFail($item['idRuolo']);
 $nomeRuolo = $ruolo->nome;
-$stato = Stato::find($item['idStato']);
+$stato = Stato::findOrFail($item['idStato']);
 $nomeStato = $stato->nome;
-$nazione = Nazione::find($item['idNazione']);
+$nazione = Nazione::findOrFail($item['idNazione']);
 $nomeNazione = $nazione->nome;
-$comune = ComuneItaliano::find($item['idNazione']);
+$comune = ComuneItaliano::findOrFail($item['idNazione']);
 $nomeComune = $comune->nome;
         return [
             'idUtente'=>$item['idUtente'],

@@ -22,7 +22,7 @@ class FilmResource extends JsonResource
 protected function getCampi()
 { 
     // Ottengo l'istanza della categoria
-    $categoria = Categoria::find($this->idCategoria);
+    $categoria = Categoria::findOrFail($this->idCategoria);
     $nomeCategoria = $categoria->nome;
     return [
         'Titolo' => $this->titolo,

@@ -17,6 +17,7 @@ use App\Models\Utente;
 use App\Models\Utente_Ruolo;
 use App\Models\UtenteAuth;
 use App\Models\UtenteStato;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class UserController extends Controller
             $utente = Utente::all();
             return new UtenteCollection($utente);
         } else {
-            abort(403, 'Operazione non permessa');
+           abort(403, 'ERR NA_001');
         }
     }
 
@@ -48,7 +49,7 @@ class UserController extends Controller
     {
         $utenteValidato = $request->validated();
         // Creazione dell'utente
-        $utente =Utente::create([
+        $utente = Utente::create([
             'nome' => $utenteValidato['nome'],
             'cognome' => $utenteValidato['cognome'],
             'email' => $utenteValidato['email'],
@@ -57,47 +58,45 @@ class UserController extends Controller
             'codiceFiscale' => $utenteValidato['codiceFiscale']
         ]);
         $idUtente = $utente->idUtente;
-        if (isset($idUtente)) {
-            $sale = hash('sha512', trim(Str::random(200)));
-            Password::create([
-                'idUtente' => $idUtente,
-                'psw' => hash('sha512', trim(request('psw'))),
-                'sale' => $sale
-            ]);
-            UtenteAuth::create([
-                'idUtente' => $idUtente,
-                'user' => hash('sha512', trim(Str::random(200)))
-            ]);
-            Utente_Ruolo::create([
-                'idUtente' => $idUtente,
-                'idUtenteRuolo' => 2
-            ]);
-            Credito::create([
-                'idUtente' => $idUtente,
-                'credito' => 0
-            ]);
 
-            Indirizzo::create([
-                "idUtente" => $idUtente,
-                "idTipoIndirizzo" => 2,
-                "idNazione" => $utenteValidato['idNazione'],
-                "idComune" => $utenteValidato['idComune'],
-                "cap" => $utenteValidato['cap'],
-                "indirizzo" => $utenteValidato['indirizzo'],
-                "civico" => $utenteValidato['civico'],
-                "località" => $utenteValidato['località']
-            ]);
-            UtenteStato::create([
-                "idUtente" => $idUtente,
-                "idStato" => 1
-            ]);
+        $sale = hash('sha512', trim(Str::random(200)));
+        Password::create([
+            'idUtente' => $idUtente,
+            'psw' => hash('sha512', trim(request('psw'))),
+            'sale' => $sale
+        ]);
+        UtenteAuth::create([
+            'idUtente' => $idUtente,
+            'user' => hash('sha512', trim(Str::random(200)))
+        ]);
+        Utente_Ruolo::create([
+            'idUtente' => $idUtente,
+            'idUtenteRuolo' => 2
+        ]);
+        Credito::create([
+            'idUtente' => $idUtente,
+            'credito' => 0
+        ]);
 
-            return response()->json(['message' => 'Utente creato con successo'], 201);
-        } else {
-            // Creazione non riuscita
-            return abort(403, 'ERR R001');
-        }
+        Indirizzo::create([
+            "idUtente" => $idUtente,
+            "idTipoIndirizzo" => 2,
+            "idNazione" => $utenteValidato['idNazione'],
+            "idComune" => $utenteValidato['idComune'],
+            "cap" => $utenteValidato['cap'],
+            "indirizzo" => $utenteValidato['indirizzo'],
+            "civico" => $utenteValidato['civico'],
+            "località" => $utenteValidato['località']
+        ]);
+        UtenteStato::create([
+            "idUtente" => $idUtente,
+            "idStato" => 1
+        ]);
+
+        return response()->json(['message' => 'Utente creato con successo'], 201);
     }
+
+
 
     /**
      * Display the specified resource.
@@ -115,13 +114,17 @@ class UserController extends Controller
             $idRuolo = $sessione->data->idRuolo;
             //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
             if ($idUtente == $id || $idRuolo == 1) {
-                $utente = Utente::find($id);
-                return new UtenteResource($utente);
+                try {
+                    $utente = Utente::findOrFail($id);
+                    return new UtenteResource($utente);
+                } catch (ModelNotFoundException $e) {
+                    abort(403, 'ERR NF_001');
+                }
             } else {
-                return response()->json(['error' => 'Non autorizzato'], 401);
+                abort(403, 'ERR NF_0001');
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -142,7 +145,7 @@ class UserController extends Controller
             $idRuolo = $sessione->data->idRuolo;
             //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
             if ($idUtente == $id || $idRuolo == 1) {
-                $utente = Utente::find($id);
+                $utente = Utente::findOrFail($id);
 
                 //verifico i dati
                 $dati = $request->validated();
@@ -159,10 +162,10 @@ class UserController extends Controller
                     return $utente;
                 } else {
                     // L'operazione di salvataggio ha fallito
-                    return response()->json(['error' => 'Operazione non effettuata'], 400);
+                    return response()->json(['error' => 'ERR SA_0001'], 404);
                 }
             } else {
-                return response()->json(['error' => 'Non autorizzato'], 401);
+                abort(403, 'ERR NA_001');
             }
         }
     }
@@ -175,12 +178,12 @@ class UserController extends Controller
     public function destroy($id)
     {
         if (Gate::allows('eliminare')) {
-            $utente = Utente::find($id);
+            $utente = Utente::findOrFail($id);
             $utente->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

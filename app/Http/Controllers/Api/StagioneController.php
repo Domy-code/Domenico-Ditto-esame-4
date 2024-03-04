@@ -9,6 +9,7 @@ use App\Http\Resources\StagioneCollection;
 use App\Http\Resources\StagioneResource;
 use App\Models\SerieTv_Stagioni;
 use App\Models\Stagione;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -40,14 +41,14 @@ class StagioneController extends Controller
             ]);
             $idStagione = $stagione->idStagione;
             if (isset($idStagione)) {
-            SerieTv_Stagioni::create([
-                'idSerieTv' => $stagioneValidata['idSerieTv'],
-                'idStagione' => $idStagione
-            ]);
-        }
+                SerieTv_Stagioni::create([
+                    'idSerieTv' => $stagioneValidata['idSerieTv'],
+                    'idStagione' => $idStagione
+                ]);
+            }
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -57,10 +58,14 @@ class StagioneController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $stagione = Stagione::find($id);
-            return new StagioneResource($stagione);
+            try {
+                $stagione = Stagione::findOrFail($id);
+                return new StagioneResource($stagione);
+            } catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -71,7 +76,7 @@ class StagioneController extends Controller
     {
         if (Gate::allows('aggiornare')) {
 
-            $stagione = Stagione::find($id);
+            $stagione = Stagione::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -88,10 +93,10 @@ class StagioneController extends Controller
                 return $stagione;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 

@@ -8,6 +8,7 @@ use App\Http\Requests\CategoriaUpdateRequest;
 use App\Http\Resources\CategoriaCollection;
 use App\Http\Resources\CategoriaResource;
 use App\Models\Categoria;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,7 +24,7 @@ class CategoriaController extends Controller
             $categoria = Categoria::all();
             return new CategoriaCollection($categoria);
         } else {
-            abort(403, 'Operazione non permessa');
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -33,14 +34,18 @@ class CategoriaController extends Controller
     public function store(CategoriaStoreRequest $request)
     {
         if (Gate::allows('aggiungere')) {
-            $categoriaValidata = $request->validated();
-            // Creazione dell'elemento
-            Categoria::create([
-                'nome' => $categoriaValidata['nome']
-            ]);
-            return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
+            try {
+                $categoriaValidata = $request->validated();
+                // Creazione dell'elemento
+                Categoria::create([
+                    'nome' => $categoriaValidata['nome']
+                ]);
+                return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
+            } catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -50,10 +55,14 @@ class CategoriaController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $categoria = Categoria::find($id);
-            return new CategoriaResource($categoria);
+            try {
+                $categoria = Categoria::findOrFail($id);
+                return new CategoriaResource($categoria);
+            } catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -63,8 +72,8 @@ class CategoriaController extends Controller
     public function update(CategoriaUpdateRequest $request, string $id)
     {
         if (Gate::allows('aggiornare')) {
-          
-            $categoria = Categoria::find($id);
+
+            $categoria = Categoria::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -81,10 +90,10 @@ class CategoriaController extends Controller
                 return $categoria;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -94,12 +103,12 @@ class CategoriaController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $categoria = Categoria::find($id);
+            $categoria = Categoria::findOrFail($id);
             $categoria->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

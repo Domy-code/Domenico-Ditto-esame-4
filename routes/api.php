@@ -59,14 +59,13 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
     Route::get('film', [FilmController::class, 'index']);
     Route::get('serieTv', [SerieTvController::class, 'index']);
     Route::get('categoria', [CategoriaController::class, 'index']);
-    Route::get('/episodio', [EpisodioController::class, 'index']);
+    Route::get('episodio', [EpisodioController::class, 'index']);
     Route::get('stagione', [StagioneController::class, 'index']);
     Route::get('serieTv/{id}/stagione/episodi',[SerieTvStagioneEpisodiController::class, 'index']);
     
 
     Route::get('film/{id}', [FilmController::class, 'show']);
     Route::get('serieTv/{id}', [SerieTvController::class, 'show']);
-    Route::get('categoria/{id}', [CategoriaController::class, 'show']);
     Route::get('episodio/{id}', [EpisodioController::class, 'show']);
     Route::get('credito/{id}', [CreditoController::class, 'show']);
     Route::get('indirizzo/{id}', [IndirizzoController::class, 'show']);
@@ -74,6 +73,7 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
     Route::get('stagione/{id}', [StagioneController::class, 'show']);
     Route::get('stagione/{id}/episodi',[stagioneEpisodiController::class, 'show']);
     Route::get('serieTv/{idSerieTv}/stagione/{idStagione}/episodi',[SerieTvStagioneEpisodiController::class, 'show']);
+    Route::get('recapito/{id}', [RecapitoController::class, 'show']);
 
     Route::put('utente/{id}', [UserController::class, 'update']);
     Route::put('recapito/{id}', [RecapitoController::class, 'update']);
@@ -86,7 +86,7 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
         Route::get('tipoIndirizzo/{id}', [TipoIndirizzoController::class, 'show']);
         Route::delete('tipoIndirizzo/{id}', [TipoIndirizzoController::class, 'destroy']);
         Route::put('tipoIndirizzo/{id}', [TipoIndirizzoController::class, 'update']);
-        Route::post('tipoIndirizzo', [TipoIndirizzoController::class, 'store']);
+        
 
         Route::get('nazione', [NazioneController::class, 'index']);
         Route::get('nazione/{id}', [NazioneController::class, 'show']);
@@ -104,7 +104,6 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
         Route::delete('utente/{id}', [UserController::class, 'destroy']);
 
         Route::get('recapito', [RecapitoController::class, 'index']);
-        Route::get('recapito/{id}', [RecapitoController::class, 'show']);
         Route::delete('recapito/{id}', [RecapitoController::class, 'destroy']);
         Route::post('recapito', [RecapitoController::class, 'store']);
 
@@ -120,12 +119,6 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
         Route::put('ruolo/{id}', [RuoloController::class, 'update']);
         Route::post('ruolo', [RuoloController::class, 'store']);
 
-        Route::get('tipiRecapito', [TipiRecapitoController::class, 'index']);
-        Route::get('tipiRecapito/{id}', [TipiRecapitoController::class, 'show']);
-        Route::delete('tipiRecapito/{id}', [TipiRecapitoController::class, 'destroy']);
-        Route::put('tipiRecapito/{id}', [TipiRecapitoController::class, 'update']);
-        Route::post('tipiRecapito', [TipiRecapitoController::class, 'store']);
-
         Route::get('credito', [CreditoController::class, 'index']);
         Route::delete('credito/{id}', [CreditoController::class, 'destroy']);
         Route::post('credito', [CreditoController::class, 'store']);
@@ -140,7 +133,7 @@ Route::group(['middleware' => ['Autenticazione', 'utenteRuolo:Admin,User']], fun
 
         Route::delete('serieTv/{id}', [SerieTvController::class, 'destroy']);
         Route::put('serieTv/{id}', [SerieTvController::class, 'update']);
-        Route::post('serieTv', [SerieTvController::class, 'store']);
+        Route::post('serieTv', [SerieTvController::class, 'store']);         
 
         Route::delete('film/{id}', [FilmController::class, 'destroy']);
         Route::put('film/{id}', [FilmController::class, 'update']);

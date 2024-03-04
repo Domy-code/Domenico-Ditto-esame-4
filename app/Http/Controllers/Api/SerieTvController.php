@@ -8,6 +8,7 @@ use App\Http\Requests\SerieTvUpdateRequest;
 use App\Http\Resources\SerieTvCollection;
 use App\Http\Resources\SerieTvResource;
 use App\Models\SerieTv;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -36,7 +37,7 @@ class SerieTvController extends Controller
             $serieTvValidata = $request->validated();
             // Creazione dell'elemento
             SerieTv::create([
-                
+
                 'nome' => $serieTvValidata['nome'],
                 'descrizione' => $serieTvValidata['descrizione'],
                 'idCategoria' => $serieTvValidata['idCategoria'],
@@ -52,7 +53,7 @@ class SerieTvController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -62,10 +63,14 @@ class SerieTvController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $serieTv = SerieTv::find($id);
-            return new SerieTvResource($serieTv);
+            try {
+                $serieTv = SerieTv::findOrFail($id);
+                return new SerieTvResource($serieTv);
+            } catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -75,8 +80,8 @@ class SerieTvController extends Controller
     public function update(SerieTvUpdateRequest $request, string $id)
     {
         if (Gate::allows('aggiornare')) {
-          
-            $serieTv = SerieTv::find($id);
+
+            $serieTv = SerieTv::findOrFail($id);
 
             //verifico i dati
             $dati = $serieTv->validated();
@@ -93,10 +98,10 @@ class SerieTvController extends Controller
                 return $serieTv;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -106,12 +111,12 @@ class SerieTvController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $categoria = SerieTv::find($id);
+            $categoria = SerieTv::findOrFail($id);
             $categoria->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

@@ -22,7 +22,7 @@ class RecapitoCollection extends ResourceCollection
 
     protected function getCampi($item)
     {
-        $tipoRecapito = TipoRecapito::find($item['nome']);
+        $tipoRecapito = TipoRecapito::findOrFail($item['nome']);
         $nomeTipoRecapito = $tipoRecapito->nome;
         return [
             'idUtente' => $item['idUtente'],

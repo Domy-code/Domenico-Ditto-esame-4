@@ -8,6 +8,7 @@ use App\Http\Requests\FilmUpdateRequest;
 use App\Http\Resources\FilmCollection;
 use App\Http\Resources\FilmResource;
 use App\Models\Film;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +50,7 @@ class FilmController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -59,10 +60,14 @@ class FilmController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $film = Film::find($id);
+            try{
+            $film = Film::findOrFail($id);
             return new FilmResource($film);
+            } catch (ModelNotFoundException $e) {
+                return response()->json(['error' => 'ERR NF_0001'], 404);
+            }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            return response()->json(['error' => 'ERR NA_002'], 401);
         }
     }
 
@@ -73,7 +78,7 @@ class FilmController extends Controller
     {
         if (Gate::allows('aggiornare')) {
           
-            $film = Film::find($id);
+            $film = Film::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -90,10 +95,10 @@ class FilmController extends Controller
                 return $film;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -103,12 +108,12 @@ class FilmController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $film = film::find($id);
+            $film = film::findOrFail($id);
             $film->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

@@ -23,7 +23,7 @@ class TipiRecapitoController extends Controller
             $tipoRecapito = TipoRecapito::all();
             return new TipoRecapitoCollection($tipoRecapito);
         } else {
-            abort(403, 'Operazione non permessa');
+           abort(403, 'ERR NA_001');
         }
     }
 
@@ -41,7 +41,7 @@ class TipiRecapitoController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -51,10 +51,10 @@ class TipiRecapitoController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $tipoRecapito = TipoRecapito::find($id);
+            $tipoRecapito = TipoRecapito::findOrFail($id);
             return new TipoRecapitoResource($tipoRecapito);
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -65,7 +65,7 @@ class TipiRecapitoController extends Controller
     {
         if (Gate::allows('aggiornare')) {
           
-            $tipoRecapito = TipoRecapito::find($id);
+            $tipoRecapito = TipoRecapito::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -82,10 +82,10 @@ class TipiRecapitoController extends Controller
                 return $tipoRecapito;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -95,12 +95,12 @@ class TipiRecapitoController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $tipoRecapito = TipoRecapito::find($id);
+            $tipoRecapito = TipoRecapito::findOrFail($id);
             $tipoRecapito->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

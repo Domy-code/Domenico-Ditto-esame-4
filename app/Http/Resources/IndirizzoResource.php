@@ -24,11 +24,11 @@ class IndirizzoResource extends JsonResource
 protected function getCampi()
 { 
     // Ottengo l'istanza della categoria
-    $tipoIndirizzo = TipoIndirizzo::find($this->idTipoIndirizzo);
+    $tipoIndirizzo = TipoIndirizzo::findOrFail($this->idTipoIndirizzo);
     $nomeTipoIndirizzo = $tipoIndirizzo->nome;
-    $nazione = Nazione::find($this->idNazione);
+    $nazione = Nazione::findOrFail($this->idNazione);
     $nomeNazione = $nazione->nome;
-    $comune = ComuneItaliano::find($this->idComune);
+    $comune = ComuneItaliano::findOrFail($this->idComune);
     $nomeComune = $comune->nome;
     return [
         'Tipo Indirizzo' => $nomeTipoIndirizzo,

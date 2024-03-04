@@ -23,7 +23,7 @@ class ComuneController extends Controller
             $comune = ComuneItaliano::all();
             return new ComuneCollection($comune);
         } else {
-            abort(403, 'Operazione non permessa');
+           abort(403, 'ERR NA_001');
         }
     }
 
@@ -45,7 +45,7 @@ class ComuneController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -55,10 +55,10 @@ class ComuneController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $comune = ComuneItaliano::find($id);
+            $comune = ComuneItaliano::findOrFail($id);
             return new ComuneResource($comune);
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -69,7 +69,7 @@ class ComuneController extends Controller
     {
         if (Gate::allows('aggiornare')) {
           
-            $comune = ComuneItaliano::find($id);
+            $comune = ComuneItaliano::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -86,10 +86,10 @@ class ComuneController extends Controller
                 return $comune;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -99,12 +99,12 @@ class ComuneController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $comune = ComuneItaliano::find($id);
+            $comune = ComuneItaliano::findOrFail($id);
             $comune->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

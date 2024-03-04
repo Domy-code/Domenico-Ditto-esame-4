@@ -22,7 +22,7 @@ class StatoController extends Controller
             $comune = Stato::all();
             return new StatoCollection($comune);
         } else {
-            abort(403, 'Operazione non permessa');
+           abort(403, 'ERR NA_001');
         }
     }
 
@@ -39,7 +39,7 @@ class StatoController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -49,10 +49,10 @@ class StatoController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $stato = Stato::find($id);
+            $stato = Stato::findOrFail($id);
             return new Stato($stato);
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -63,7 +63,7 @@ class StatoController extends Controller
     {
         if (Gate::allows('aggiornare')) {
           
-            $stato = Stato::find($id);
+            $stato = Stato::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -80,10 +80,10 @@ class StatoController extends Controller
                 return $stato;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -93,12 +93,12 @@ class StatoController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $stato = Stato::find($id);
+            $stato = Stato::findOrFail($id);
             $stato->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

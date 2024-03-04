@@ -8,6 +8,7 @@ use App\Http\Requests\RecapitoUpdateRequest;
 use App\Http\Resources\RecapitoCollection;
 use App\Http\Resources\RecapitoResource;
 use App\Models\Recapito;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,7 +24,7 @@ class RecapitoController extends Controller
             $recapito = Recapito::all();
             return new RecapitoCollection($recapito);
         } else {
-            abort(403, 'Operazione non permessa');
+           abort(403, 'ERR NA_001');
         }
     }
 
@@ -42,7 +43,7 @@ class RecapitoController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -52,23 +53,27 @@ class RecapitoController extends Controller
     public function show(Request $request, string $id)
     {
         if (Gate::allows('leggere')) {
-            // Estraggo il token JWT 
-            $token = $request->bearerToken();
-            //decodifico il token
-            $sessione = AccediController::verificaToken($token);
-            //ricavo l'IdUtente dal token
-            $idUtente = $sessione->data->idUtente;
-            //ricavo l' IdRuolo dal token
-            $idRuolo = $sessione->data->idRuolo;
-            //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
-            if ($idUtente == $id || $idRuolo == 1) {
-                $recapito = Recapito::find($id);
-                return new RecapitoResource($recapito);
-            } else {
-                return response()->json(['error' => 'Non autorizzato'], 401);
+            try {
+                // Estraggo il token JWT 
+                $token = $request->bearerToken();
+                //decodifico il token
+                $sessione = AccediController::verificaToken($token);
+                //ricavo l'IdUtente dal token
+                $idUtente = $sessione->data->idUtente;
+                //ricavo l' IdRuolo dal token
+                $idRuolo = $sessione->data->idRuolo;
+                //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
+                if ($idUtente == $id || $idRuolo == 1) {
+                    $recapito = Recapito::findOrFail($id);
+                    return new RecapitoResource($recapito);
+                } else {
+                    abort(403, 'ERR NA_002');
+                }
+            } catch (ModelNotFoundException $e) {
+                return response()->json(['error' => 'ERR NF_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -78,41 +83,44 @@ class RecapitoController extends Controller
     public function update(RecapitoUpdateRequest $request, string $id)
     {
         if (Gate::allows('aggiornare')) {
+            try {
+                // Estraggo il token JWT 
+                $token = $request->bearerToken();
+                //decodifico il token
+                $sessione = AccediController::verificaToken($token);
+                //ricavo l'IdUtente dal token
+                $idUtente = $sessione->data->idUtente;
+                //ricavo l' IdRuolo dal token
+                $idRuolo = $sessione->data->idRuolo;
+                //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
+                if ($idUtente == $id || $idRuolo == 1) {
+                    $recapito = Recapito::findOrFail($id);
 
-            // Estraggo il token JWT 
-            $token = $request->bearerToken();
-            //decodifico il token
-            $sessione = AccediController::verificaToken($token);
-            //ricavo l'IdUtente dal token
-            $idUtente = $sessione->data->idUtente;
-            //ricavo l' IdRuolo dal token
-            $idRuolo = $sessione->data->idRuolo;
-            //Verifico se l' utente che effettua la richiesta sia il proprietario di quell' account o un admin
-            if ($idUtente == $id || $idRuolo == 1) {
-                $recapito = Recapito::find($id);
+                    //verifico i dati
+                    $dati = $request->validated();
 
-                //verifico i dati
-                $dati = $request->validated();
+                    //riempio i dati
+                    $recapito->fill($dati);
 
-                //riempio i dati
-                $recapito->fill($dati);
+                    //Salvo
+                    $result = $recapito->save();
 
-                //Salvo
-                $result = $recapito->save();
-
-                // Verifico il risultato dell'operazione
-                if ($result) {
-                    // Se L'operazione di salvataggio è avvenuta con successo
-                    return $recapito;
+                    // Verifico il risultato dell'operazione
+                    if ($result) {
+                        // Se L'operazione di salvataggio è avvenuta con successo
+                        return $recapito;
+                    } else {
+                        // L'operazione di salvataggio ha fallito
+                        return response()->json(['error' => 'ERR SA_0001'], 404);
+                    }
                 } else {
-                    // L'operazione di salvataggio ha fallito
-                    return response()->json(['error' => 'Operazione non effettuata'], 400);
+                    abort(403, 'ERR NA_001');
                 }
-            } else {
-                return response()->json(['error' => 'Non autorizzato'], 401);
+            } catch (ModelNotFoundException $e) {
+                return response()->json(['error' => 'ERR NF_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -122,12 +130,12 @@ class RecapitoController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $recapito = Recapito::find($id);
+            $recapito = Recapito::findOrFail($id);
             $recapito->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }

@@ -26,13 +26,13 @@ class UtenteResource extends JsonResource
     { 
         
 
-        $ruolo = Ruolo::find($this->idRuolo);
+        $ruolo = Ruolo::findOrFail($this->idRuolo);
         $nomeRuolo = $ruolo->nome;
-        $stato = Stato::find($this->idStato);
+        $stato = Stato::findOrFail($this->idStato);
         $nomeStato = $stato->nome;
-        $nazione = Nazione::find($this->idNazione);
+        $nazione = Nazione::findOrFail($this->idNazione);
         $nomeNazione = $nazione->nome;
-        $comune = ComuneItaliano::find($this->idNazione);
+        $comune = ComuneItaliano::findOrFail($this->idNazione);
         $nomeComune = $comune->nome;
         return [
             'idUtente'=>$this->idUtente,

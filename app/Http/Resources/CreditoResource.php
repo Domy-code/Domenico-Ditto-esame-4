@@ -22,7 +22,7 @@ class CreditoResource extends JsonResource
 protected function getCampi()
 { 
     // Ottengo l'istanza della categoria
-    $utente = Utente::find($this->idUtente);
+    $utente = Utente::findOrFail($this->idUtente);
     $nomeUtente = $utente->nome;
     return [
         'credito' => $this->credito

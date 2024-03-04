@@ -9,6 +9,7 @@ use App\Http\Resources\EpisodioCollection;
 use App\Http\Resources\EpisodioResource;
 use App\Models\Episodio;
 use App\Models\StagioniEpisodi;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -21,10 +22,14 @@ class EpisodioController extends Controller
     {
 
         if (Gate::allows('leggere')) {
+            try{
             $episodio = Episodio::all();
             return new EpisodioCollection($episodio);
+            }catch (ModelNotFoundException $e) {
+                abort(403, 'ERR NF_001');
+            }
         } else {
-            abort(403, 'Operazione non permessa');
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -55,7 +60,7 @@ class EpisodioController extends Controller
             ]);
             return response()->json(['message' => 'Elemento aggiunto con successo'], 201);
         } else {
-            return response()->json(['message' => 'Non autorizzato'], 400);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -65,10 +70,10 @@ class EpisodioController extends Controller
     public function show(string $id)
     {
         if (Gate::allows('leggere')) {
-            $episodio = Episodio::find($id);
+            $episodio = Episodio::findOrFail($id);
             return new EpisodioResource($episodio);
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -79,7 +84,7 @@ class EpisodioController extends Controller
     {
         if (Gate::allows('aggiornare')) {
           
-            $episodio = Episodio::find($id);
+            $episodio = Episodio::findOrFail($id);
 
             //verifico i dati
             $dati = $request->validated();
@@ -96,10 +101,10 @@ class EpisodioController extends Controller
                 return $episodio;
             } else {
                 // L'operazione di salvataggio ha fallito
-                return response()->json(['error' => 'Operazione non effettuata'], 400);
+                return response()->json(['error' => 'ERR SA_0001'], 404);
             }
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 
@@ -109,12 +114,12 @@ class EpisodioController extends Controller
     public function destroy(string $id)
     {
         if (Gate::allows('eliminare')) {
-            $episodio = Episodio::find($id);
+            $episodio = Episodio::findOrFail($id);
             $episodio->delete();
 
             return response()->noContent();
         } else {
-            return response()->json(['error' => 'Non autorizzato'], 401);
+            abort(403, 'ERR NA_001');
         }
     }
 }
